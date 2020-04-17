@@ -3122,7 +3122,9 @@ var spine;
 			this.flipX = false;
 			this.flipY = false;
 			this.x = 0;
-			this.y = 0;
+			this.y = 0; 
+			this.scaleX = 1;
+			this.scaleY = 1;
 			if (data == null)
 				throw new Error("data cannot be null.");
 			this.data = data;

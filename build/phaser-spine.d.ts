@@ -43,6 +43,8 @@ declare module PhaserSpine {
     }
     interface SpineCache extends Phaser.Cache {
         addSpine: (key: string, data: any) => void;
+        checkSpineKey: (key: string) => any;
+        removeSpine: (key: string) => any;
         getSpine: (key: string) => any;
         spine: {
             [key: string]: SpineCacheData;

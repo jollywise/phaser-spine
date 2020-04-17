@@ -31,7 +31,7 @@ module PhaserSpine {
         public onEnd: Phaser.Signal;
 
         constructor(game: Phaser.Game, x: number, y: number, key: string, premultipliedAlpha: boolean = false) {
-            super(game, x, y, '');
+            super(game, x, y, key);
 
             this.premultipliedAlpha = premultipliedAlpha;
 
@@ -129,10 +129,10 @@ module PhaserSpine {
             // The function passed to TextureAtlas is used to resolve relative paths.
             let atlas: spine.TextureAtlas = new spine.TextureAtlas(this.game.cache.getText('atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key), (path, minMagFilterStrings) => {
                 if (this.game.renderType === Phaser.CANVAS) {
-                    return new PhaserSpine.Canvas.Texture(this.game.cache.getImage(path));
+                    return new PhaserSpine.Canvas.Texture(this.game.cache.getImage('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key));
                 }
                 var useMipMaps = minMagFilterStrings.min.toLowerCase().indexOf('mip') !== -1;
-                return new PhaserSpine.WebGL.Texture(<WebGLRenderingContext>(<any>this.game.renderer).gl, this.game.cache.getImage(path), useMipMaps);
+                return new PhaserSpine.WebGL.Texture(<WebGLRenderingContext>(<any>this.game.renderer).gl, this.game.cache.getImage('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key), useMipMaps);
             });
 
             // Create a AtlasAttachmentLoader, which is specific to the WebGL backend.
@@ -141,7 +141,7 @@ module PhaserSpine {
             // Create a SkeletonJson instance for parsing the .json file.
             let skeletonJson = new spine.SkeletonJson(atlasLoader);
             // Set the scale to apply during parsing, parse the file, and create a new skeleton.
-            let skeletonData = skeletonJson.readSkeletonData(this.game.cache.getJSON(SpinePlugin.SPINE_NAMESPACE + key));
+            let skeletonData = skeletonJson.readSkeletonData(this.game.cache.getJSON(SpinePlugin.SPINE_NAMESPACE + '_' + key));
 
             return new spine.Skeleton(skeletonData);
         }
@@ -153,7 +153,15 @@ module PhaserSpine {
             this.state.apply(this.skeleton);
 
             this.skeleton.color.a = this.worldAlpha;
-            this.skeleton.getRootBone().rotation = this.worldRotation * 180 / Math.PI;
+
+            let rotation = this.worldRotation * 180 / Math.PI;
+            if (this.scale.x < 0) {
+                rotation += 180;
+            }
+            this.skeleton.getRootBone().rotation = rotation;
+            this.skeleton.getRootBone().scaleX = this.worldScale.x;
+            this.skeleton.getRootBone().scaleY = this.worldScale.x;
+            
             this.skeleton.updateWorldTransform();
         }
 
@@ -307,15 +315,11 @@ module PhaserSpine {
                 for (let key in skin.attachments) {
                     let slotKeyPair = key.split(':');
                     let slotIndex: number = parseInt(slotKeyPair[0]);
-                    let attachmentName: string = Object.keys(skin.attachments[key])[0];
-                    let attachment: spine.Attachment = skin.attachments[key][attachmentName];
-
-                    if (undefined === slotIndex || undefined === attachmentName) {
-                        console.warn('something went wrong with reading the attachments index and/or name');
-                        return;
+                    for (var id in skin.attachments[key]) {
+						let attachmentName: string = id;
+						let attachment: spine.Attachment = skin.attachments[key][attachmentName];
+						newSkin.addAttachment(slotIndex, attachmentName, attachment);
                     }
-
-                    newSkin.addAttachment(slotIndex, attachmentName, attachment);
                 }
             }
 

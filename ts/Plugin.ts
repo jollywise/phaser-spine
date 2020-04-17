@@ -9,6 +9,8 @@ module PhaserSpine {
 
     export interface SpineCache extends Phaser.Cache {
         addSpine: (key: string, data: any) => void;
+        checkSpineKey: (key: string) => any;
+        removeSpine: (key: string) => any;
         getSpine: (key: string) => any;
         spine: { [key: string]: SpineCacheData };
     }
@@ -63,14 +65,13 @@ module PhaserSpine {
                 let path: string = url.substr(0, url.lastIndexOf('.'));
 
                 let pathonly = url.substr(0, url.lastIndexOf('/'));
-                let filenameonly = url.substring(url.lastIndexOf('/') + 1, url.lastIndexOf('.'));
 
                 (<PhaserSpine.SpineLoader>this).text('atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.atlas');
-                (<PhaserSpine.SpineLoader>this).json(SpinePlugin.SPINE_NAMESPACE + key, path + '.json');
+                (<PhaserSpine.SpineLoader>this).json(SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.json');
                 // (<PhaserSpine.SpineLoader>this).image(SpinePlugin.SPINE_NAMESPACE + key, path +'.png');
 
                 this.onFileComplete.add((progress: number, name: string) => {
-                    if (name.indexOf('atlas_spine_') === 0) {
+                    if (name === 'atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key) {
                         let atlas: any = this.game.cache.getText(name);
                         var firstImageName: string = null;
                         atlas.split(/\r\n|\r|\n/).forEach(function (line: string, idx: number) {
@@ -80,15 +81,8 @@ module PhaserSpine {
 
                             if (firstImageName === null) {
                                 firstImageName = line.substr(0, line.lastIndexOf('.'));
-                            }
-
-                            if (firstImageName !== null && line.indexOf(firstImageName) !== -1 && line.indexOf('.') !== -1) {
-                                //Only load up atlas images if filename or keyname matches text atlas key [atlas_spine_keyname] are of the same spine project
-                                //Assumes each spine project is in its own separate directory. Filename or keyname must match text atlas key!
-                                if (filenameonly === name.replace('atlas_spine_', '') || key === name.replace('atlas_spine_', '')) {
-                                    this.image(line, pathonly + '/' + line);
-                                }
-                            }
+                                this.image('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, pathonly + '/' + line);
+                            }                            
                         }.bind(this));
                     }
                 })
@@ -125,6 +119,20 @@ module PhaserSpine {
             //Method for adding a spine dict to the cache space
             (<PhaserSpine.SpineCache>Phaser.Cache.prototype).addSpine = function (key: string, data: SpineCacheData) {
                 this.spine[key] = data;
+            };
+
+            (<PhaserSpine.SpineCache>Phaser.Cache.prototype).checkSpineKey = function (key: string): boolean {
+                if (this.spine[key]) {
+                    return true;
+                }
+                return false;
+            };
+
+            (<PhaserSpine.SpineCache>Phaser.Cache.prototype).removeSpine = function (key: string) {
+                this.game.cache.removeText('atlas_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key);
+                this.game.cache.removeImage('spritesheet_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key);
+                this.game.cache.removeJSON(PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key);
+                delete this.spine[key];
             };
 
             //Method for fetching a spine dict from the cache space

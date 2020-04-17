@@ -24,7 +24,7 @@ module PhaserSpine {
             public resize(bounds: PIXI.Rectangle, scale: Phaser.Point, renderSession: IRenderSession): void {
                 let res = renderSession.resolution;
 
-                (<any>renderSession.context).resetTransform();
+                (<any>renderSession.context).setTransform(1, 0, 0, 1, 0, 0);
                 //Scale the animation
                 renderSession.context.scale(scale.x * res, scale.y * res);
                 //Offset to model's center
