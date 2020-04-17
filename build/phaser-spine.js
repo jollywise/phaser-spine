@@ -1,10 +1,10 @@
 /*!
- * phaser-spine - version 4.0.0-alpha1 
+ * phaser-spine - version 4.0.0-alpha1
  * Spine plugin for Phaser.io!
  *
  * OrangeGames
  * Build at 22-11-2017
- * Released under MIT License 
+ * Released under MIT License
  */
 
 var __extends = (this && this.__extends) || (function () {
@@ -3132,6 +3132,8 @@ var spine;
 			this.flipY = false;
 			this.x = 0;
 			this.y = 0;
+			this.scaleX = 1;
+			this.scaleY = 1;
 			if (data == null)
 				throw new Error("data cannot be null.");
 			this.data = data;
@@ -8976,7 +8978,8 @@ var PhaserSpine;
             };
             Renderer.prototype.resize = function (bounds, scale, renderSession) {
                 var res = renderSession.resolution;
-                renderSession.context.resetTransform();
+                //renderSession.context.resetTransform();
+								renderSession.context.setTransform(1, 0, 0, 1, 0, 0);
                 renderSession.context.scale(scale.x * res, scale.y * res);
                 renderSession.context.translate(bounds.width / 2 / scale.x, bounds.height / scale.y / res);
                 if (res > 1) {
@@ -9228,11 +9231,10 @@ var PhaserSpine;
                 var _this = this;
                 var path = url.substr(0, url.lastIndexOf('.'));
                 var pathonly = url.substr(0, url.lastIndexOf('/'));
-                var filenameonly = url.substring(url.lastIndexOf('/') + 1, url.lastIndexOf('.'));
                 this.text('atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.atlas');
-                this.json(SpinePlugin.SPINE_NAMESPACE + key, path + '.json');
+                this.json(SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.json');
                 this.onFileComplete.add(function (progress, name) {
-                    if (name.indexOf('atlas_spine_') === 0) {
+                    if (name == 'atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key) {
                         var atlas = _this.game.cache.getText(name);
                         var firstImageName = null;
                         atlas.split(/\r\n|\r|\n/).forEach(function (line, idx) {
@@ -9240,12 +9242,8 @@ var PhaserSpine;
                                 return;
                             }
                             if (firstImageName === null) {
-                                firstImageName = line.substr(0, line.lastIndexOf('.'));
-                            }
-                            if (firstImageName !== null && line.indexOf(firstImageName) !== -1 && line.indexOf('.') !== -1) {
-                                if (filenameonly === name.replace('atlas_spine_', '') || key === name.replace('atlas_spine_', '')) {
-                                    this.image(line, pathonly + '/' + line);
-                                }
+																firstImageName = line.substr(0, line.lastIndexOf('.'));
+																this.image('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, pathonly + '/' + line);
                             }
                         }.bind(_this));
                     }
@@ -9269,8 +9267,21 @@ var PhaserSpine;
         SpinePlugin.prototype.addSpineCache = function () {
             Phaser.Cache.prototype.spine = {};
             Phaser.Cache.prototype.addSpine = function (key, data) {
-                this.spine[key] = data;
-            };
+							console.log('addSpine', key);
+              this.spine[key] = data;
+						};
+            Phaser.Cache.prototype.checkSpineKey = function (key, data) {
+								if (this.spine[key]) {
+									return true;
+								}
+								return false;
+						};
+						Phaser.Cache.prototype.removeSpine = function (key) {
+							this.game.cache.removeText('atlas_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key);
+							this.game.cache.removeImage('spritesheet_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key);
+							this.game.cache.removeJSON(PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key);
+							delete this.spine[key];
+						};
             Phaser.Cache.prototype.getSpine = function (key) {
                 if (!this.spine.hasOwnProperty(key)) {
                     console.warn('Phaser.Cache.getSpine: Key "' + key + '" not found in Cache.');
@@ -9293,7 +9304,7 @@ var PhaserSpine;
         __extends(Spine, _super);
         function Spine(game, x, y, key, premultipliedAlpha) {
             if (premultipliedAlpha === void 0) { premultipliedAlpha = false; }
-            var _this = _super.call(this, game, x, y, '') || this;
+            var _this = _super.call(this, game, x, y, key) || this;
             _this.premultipliedAlpha = false;
             _this.premultipliedAlpha = premultipliedAlpha;
             _this.skeleton = _this.createSkeleton(key);
@@ -9367,14 +9378,14 @@ var PhaserSpine;
             var _this = this;
             var atlas = new spine.TextureAtlas(this.game.cache.getText('atlas_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key), function (path, minMagFilterStrings) {
                 if (_this.game.renderType === Phaser.CANVAS) {
-                    return new PhaserSpine.Canvas.Texture(_this.game.cache.getImage(path));
+                    return new PhaserSpine.Canvas.Texture(_this.game.cache.getImage('spritesheet_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key));
                 }
                 var useMipMaps = minMagFilterStrings.min.toLowerCase().indexOf('mip') !== -1;
-                return new PhaserSpine.WebGL.Texture(_this.game.renderer.gl, _this.game.cache.getImage(path), useMipMaps);
+                return new PhaserSpine.WebGL.Texture(_this.game.renderer.gl, _this.game.cache.getImage('spritesheet_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key), useMipMaps);
             });
             var atlasLoader = new spine.AtlasAttachmentLoader(atlas);
             var skeletonJson = new spine.SkeletonJson(atlasLoader);
-            var skeletonData = skeletonJson.readSkeletonData(this.game.cache.getJSON(PhaserSpine.SpinePlugin.SPINE_NAMESPACE + key));
+            var skeletonData = skeletonJson.readSkeletonData(this.game.cache.getJSON(PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key));
             return new spine.Skeleton(skeletonData);
         };
         Spine.prototype.update = function () {
@@ -9382,13 +9393,23 @@ var PhaserSpine;
             this.state.update(this.game.time.elapsed / 1000);
             this.state.apply(this.skeleton);
             this.skeleton.color.a = this.worldAlpha;
-            this.skeleton.getRootBone().rotation = this.worldRotation * 180 / Math.PI;
+            var rotation = this.worldRotation * 180 / Math.PI;
+						// pawel
+						//console.log(this);
+						if (this.scale.x < 0) {
+							rotation += 180;
+						}
+						this.skeleton.getRootBone().rotation = rotation;
+						this.skeleton.getRootBone().scaleX = this.worldScale.x;
+						this.skeleton.getRootBone().scaleY = this.worldScale.x;
+
             this.skeleton.updateWorldTransform();
         };
         Spine.prototype._renderCanvas = function (renderSession, matrix) {
             if (!this.visible || !this.alive) {
                 return;
             }
+						//console.log(renderSession);
             this.renderer.resize(this.getBounds(), this.scale, renderSession);
             if (PhaserSpine.SpinePlugin.TRIANGLE) {
                 this.renderer.drawTriangles(this, renderSession);
@@ -9456,17 +9477,32 @@ var PhaserSpine;
                 if (!skin) {
                     console.warn("Skin not found: " + skinName);
                     return;
-                }
+				}
                 for (var key in skin.attachments) {
-                    var slotKeyPair = key.split(':');
-                    var slotIndex = parseInt(slotKeyPair[0]);
+					var slotKeyPair = key.split(':');
+					var slotIndex = parseInt(slotKeyPair[0]);
+					// original code only accounted for first attachment in skin
+					// updated to push all attachments in skin
+					for (var id in skin.attachments[key]) {
+						var attachmentName = id;
+						var attachment = skin.attachments[key][attachmentName];
+						newSkin.addAttachment(slotIndex, attachmentName, attachment);
+					}
+
+                   /*
+				  
+				   // ORIGINAL CODE
+				   
+					var slotKeyPair = key.split(':');
+					var slotIndex = parseInt(slotKeyPair[0]);
                     var attachmentName = Object.keys(skin.attachments[key])[0];
                     var attachment = skin.attachments[key][attachmentName];
                     if (undefined === slotIndex || undefined === attachmentName) {
                         console.warn('something went wrong with reading the attachments index and/or name');
                         return;
                     }
-                    newSkin.addAttachment(slotIndex, attachmentName, attachment);
+					newSkin.addAttachment(slotIndex, attachmentName, attachment);
+					*/
                 }
             }
             this.skeleton.data.skins.push(newSkin);
@@ -9512,7 +9548,7 @@ var PhaserSpine;
                 this.debugRenderer = null;
             };
             Renderer.prototype.resize = function (phaserSpine, spriteBounds, scale2, renderSession) {
-                var w = this.game.width;
+							  var w = this.game.width;
                 var h = this.game.height;
                 var res = renderSession.resolution;
                 phaserSpine.skeleton.flipX = scale2.x < 0;
