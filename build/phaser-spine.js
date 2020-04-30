@@ -3,7 +3,7 @@
  * Spine plugin for Phaser.io!
  *
  * OrangeGames
- * Build at 18-04-2020
+ * Build at 30-04-2020
  * Released under MIT License 
  */
 
@@ -9227,26 +9227,11 @@ var PhaserSpine;
         };
         SpinePlugin.prototype.addSpineLoader = function () {
             Phaser.Loader.prototype.spine = function (key, url, scalingVariants) {
-                var _this = this;
                 var path = url.substr(0, url.lastIndexOf('.'));
                 var pathonly = url.substr(0, url.lastIndexOf('/'));
                 this.text('atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.atlas');
                 this.json(SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.json');
-                this.onFileComplete.add(function (progress, name) {
-                    if (name === 'atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key) {
-                        var atlas = _this.game.cache.getText(name);
-                        var firstImageName = null;
-                        atlas.split(/\r\n|\r|\n/).forEach(function (line, idx) {
-                            if (line.length === 0 || line.indexOf(':') !== -1) {
-                                return;
-                            }
-                            if (firstImageName === null) {
-                                firstImageName = line.substr(0, line.lastIndexOf('.'));
-                                this.image('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, pathonly + '/' + line);
-                            }
-                        }.bind(_this));
-                    }
-                });
+                this.image('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.png');
             };
         };
         SpinePlugin.prototype.addSpineFactory = function () {

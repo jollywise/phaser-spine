@@ -68,24 +68,7 @@ module PhaserSpine {
 
                 (<PhaserSpine.SpineLoader>this).text('atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.atlas');
                 (<PhaserSpine.SpineLoader>this).json(SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.json');
-                // (<PhaserSpine.SpineLoader>this).image(SpinePlugin.SPINE_NAMESPACE + key, path +'.png');
-
-                this.onFileComplete.add((progress: number, name: string) => {
-                    if (name === 'atlas_' + SpinePlugin.SPINE_NAMESPACE + '_' + key) {
-                        let atlas: any = this.game.cache.getText(name);
-                        var firstImageName: string = null;
-                        atlas.split(/\r\n|\r|\n/).forEach(function (line: string, idx: number) {
-                            if (line.length === 0 || line.indexOf(':') !== -1) {
-                                return;
-                            }
-
-                            if (firstImageName === null) {
-                                firstImageName = line.substr(0, line.lastIndexOf('.'));
-                                this.image('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, pathonly + '/' + line);
-                            }                            
-                        }.bind(this));
-                    }
-                })
+                (<PhaserSpine.SpineLoader>this).image('spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key, path + '.png');
             };
         }
 
