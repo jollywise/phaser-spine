@@ -31,7 +31,7 @@ module PhaserSpine {
         public onEnd: Phaser.Signal;
 
         constructor(game: Phaser.Game, x: number, y: number, key: string, premultipliedAlpha: boolean = false) {
-            super(game, x, y, key);
+            super(game, x, y, 'spritesheet_' + SpinePlugin.SPINE_NAMESPACE + '_' + key);
 
             this.premultipliedAlpha = premultipliedAlpha;
 

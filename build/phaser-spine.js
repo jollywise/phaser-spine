@@ -3,7 +3,7 @@
  * Spine plugin for Phaser.io!
  *
  * OrangeGames
- * Build at 30-04-2020
+ * Build at 03-05-2020
  * Released under MIT License 
  */
 
@@ -9287,7 +9287,7 @@ var PhaserSpine;
         __extends(Spine, _super);
         function Spine(game, x, y, key, premultipliedAlpha) {
             if (premultipliedAlpha === void 0) { premultipliedAlpha = false; }
-            var _this = _super.call(this, game, x, y, key) || this;
+            var _this = _super.call(this, game, x, y, 'spritesheet_' + PhaserSpine.SpinePlugin.SPINE_NAMESPACE + '_' + key) || this;
             _this.premultipliedAlpha = false;
             _this.premultipliedAlpha = premultipliedAlpha;
             _this.skeleton = _this.createSkeleton(key);
