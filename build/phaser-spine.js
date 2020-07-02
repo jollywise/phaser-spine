@@ -1,10 +1,10 @@
 /*!
- * phaser-spine - version 4.0.0-alpha1 
+ * phaser-spine - version 4.0.0-alpha1
  * Spine plugin for Phaser.io!
  *
  * OrangeGames
  * Build at 03-05-2020
- * Released under MIT License 
+ * Released under MIT License
  */
 
 var __extends = (this && this.__extends) || (function () {
@@ -3131,7 +3131,7 @@ var spine;
 			this.flipX = false;
 			this.flipY = false;
 			this.x = 0;
-			this.y = 0; 
+			this.y = 0;
 			this.scaleX = 1;
 			this.scaleY = 1;
 			if (data == null)
@@ -9376,13 +9376,7 @@ var PhaserSpine;
             this.state.update(this.game.time.elapsed / 1000);
             this.state.apply(this.skeleton);
             this.skeleton.color.a = this.worldAlpha;
-            var rotation = this.worldRotation * 180 / Math.PI;
-            if (this.scale.x < 0) {
-                rotation += 180;
-            }
-            this.skeleton.getRootBone().rotation = rotation;
-            this.skeleton.getRootBone().scaleX = this.worldScale.x;
-            this.skeleton.getRootBone().scaleY = this.worldScale.x;
+            this.skeleton.getRootBone().rotation = this.worldRotation * 180 / Math.PI;
             this.skeleton.updateWorldTransform();
         };
         Spine.prototype._renderCanvas = function (renderSession, matrix) {
