@@ -1170,6 +1170,7 @@ var spine;
 			this.data = data;
 		}
 		AnimationState.prototype.update = function (delta) {
+			delta = Math.min(0.1, delta); // fix for delta time after pause game
 			delta *= this.timeScale;
 			var tracks = this.tracks;
 			for (var i = 0, n = tracks.length; i < n; i++) {
